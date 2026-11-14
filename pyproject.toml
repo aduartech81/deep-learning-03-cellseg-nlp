@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dl03"
+version = "1.0.0"
+description = "Segmentación de instancias celulares (Sartorius) y clasificación de texto (hojas de vida): investigación empírica reproducible"
+authors = [{name = "Andrés Duarte Chaves"}]
+requires-python = ">=3.10"
+dependencies = ["numpy", "pandas", "scipy", "scikit-learn", "scikit-image", "pyyaml", "matplotlib"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+ignore = ["E731", "E741"]
+
+[tool.mypy]
+ignore_missing_imports = true
+disable_error_code = ["var-annotated"]
+follow_imports = "skip"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src", "."]
+
+[tool.ruff.lint.per-file-ignores]
+"src/dl03/manual_exercises.py" = ["E501"]

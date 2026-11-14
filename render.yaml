@@ -1,0 +1,23 @@
+# Blueprint de Render: tablero (Dash) + API de inferencia (FastAPI en Docker, sin TensorFlow/PyTorch).
+# En Render: New + -> Blueprint -> elegir este repositorio.
+services:
+  - type: web
+    name: deep-learning-03-cellseg-nlp
+    runtime: python
+    plan: free
+    buildCommand: pip install -r dashboard/requirements.txt
+    startCommand: gunicorn --chdir dashboard app:server --workers 2 --timeout 180 --bind 0.0.0.0:$PORT
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.13.5
+      - key: API_URL
+        value: https://deep-learning-03-cellseg-nlp-api.onrender.com
+  - type: web
+    name: deep-learning-03-cellseg-nlp-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    autoDeploy: true

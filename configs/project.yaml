@@ -1,0 +1,72 @@
+# Configuración única del proyecto 03. El perfil se elige con la variable de entorno DL03_PROFILE.
+#  - full : datos reales de Kaggle (Sartorius + Jarvis Calling), corrida en Colab con GPU.
+#  - smoke: datos sintéticos con el mismo esquema, para probar que todo el código corre de punta a punta.
+#           Sus cifras NO son resultados del proyecto.
+common:
+  seed: 42
+  alpha: 0.05
+  n_boot: 10000
+  val_frac: 0.15
+  test_frac: 0.15
+  k_folds: 5
+  holm: true
+
+profiles:
+  full:
+    data_dir: data
+    out_dir: results
+    seg:
+      source: kaggle
+      competition: sartorius-cell-instance-segmentation
+      img_size: 512            # resolución base del protocolo (ablación: 256 / 512 / nativa / tiling)
+      ablation_size: 256       # las ablaciones se corren a 256 px para caber en el presupuesto (desviación declarada)
+      seeds_light: [0, 1, 2, 3, 4]
+      seeds_heavy: [0, 1, 2]
+      hpo_trials: 12           # mismo número de trials para todos los modelos de segmentación con HPO
+      unetpp: {epochs: 60, batch: 4, patience: 10, filters: [32, 64, 128, 256, 512]}
+      hovernet: {epochs: 50, batch: 4, patience: 10}
+      maskrcnn: {epochs: 24, batch: 2, max_det: 600}
+      cellpose: {epochs: 100, model: cyto2}
+      sam: {model_type: vit_b, points_per_side: 32}
+      data_fractions: [0.1, 0.25, 0.5, 1.0]
+      perturb_levels: 5
+    nlp:
+      source: kaggle
+      competition: jarvis-calling-hiring-contest
+      hpo_trials: 20           # presupuesto idéntico para los modelos ligeros comparables
+      nested_outer: 5
+      nested_inner: 3
+      seeds_light: [0, 1, 2, 3, 4]
+      seeds_transformer: [0, 1, 2, 3, 4]
+      transformer: {name: distilbert-base-uncased, max_length: 512, epochs: 4, batch: 16, lr: 5.0e-5}
+      bilstm_max_epochs_cap: 50
+      data_fractions: [0.1, 0.25, 0.5, 1.0]
+  smoke:
+    data_dir: data_smoke
+    out_dir: results_smoke
+    seg:
+      source: synthetic
+      n_images: 48
+      img_size: 64
+      ablation_size: 64
+      seeds_light: [0, 1]
+      seeds_heavy: [0]
+      hpo_trials: 2
+      unetpp: {epochs: 2, batch: 4, patience: 2, filters: [8, 16, 32, 64, 128]}
+      hovernet: {epochs: 2, batch: 4, patience: 2}
+      maskrcnn: {epochs: 1, batch: 2, max_det: 100}
+      cellpose: {epochs: 1, model: none}
+      sam: {model_type: vit_b, points_per_side: 4}
+      data_fractions: [0.5, 1.0]
+      perturb_levels: 2
+    nlp:
+      source: synthetic
+      n_docs: 480
+      hpo_trials: 2
+      nested_outer: 2
+      nested_inner: 2
+      seeds_light: [0, 1]
+      seeds_transformer: [0]
+      transformer: {name: tiny-random, max_length: 64, epochs: 1, batch: 16, lr: 1.0e-3}
+      bilstm_max_epochs_cap: 2
+      data_fractions: [0.5, 1.0]

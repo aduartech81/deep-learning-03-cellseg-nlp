@@ -1,0 +1,14 @@
+# Servicio de inferencia (sin TensorFlow ni PyTorch). scikit-learn debe coincidir con la versión usada al
+# serializar el modelo de texto (ver app/models/versions.json).
+fastapi==0.115.12
+uvicorn==0.34.2
+pydantic==2.11.4
+numpy>=2.0,<2.4
+scipy>=1.13
+pandas>=2.2
+scikit-learn==1.6.1
+scikit-image>=0.24
+joblib>=1.4
+onnxruntime>=1.18
+pillow>=10
+pyyaml>=6

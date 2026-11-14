@@ -1,0 +1,14 @@
+data/
+data_smoke/
+results/
+results_smoke/
+notebooks/
+nb_src/
+_build/
+mlruns/
+mlflow.db
+models_registry/
+.git/
+dashboard/
+colab/
+**/__pycache__

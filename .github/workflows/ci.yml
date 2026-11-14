@@ -1,0 +1,58 @@
+# lint → tipos → pruebas unitarias, de datos, de API y de regresión → imagen → prueba de humo → vulnerabilidades
+name: CI
+on:
+  push:
+    branches: [main]
+    paths: ["app/**", "src/**", "tests/**", "configs/**", "requirements*.txt", "Dockerfile", ".github/workflows/ci.yml"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  lint-types:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install ruff mypy
+      - name: ruff
+        run: ruff check src app tests
+      - name: mypy
+        run: mypy src/dl03/rle.py src/dl03/seg_metrics.py src/dl03/stats.py src/dl03/calibration.py src/dl03/drift.py app
+
+  tests:
+    runs-on: ubuntu-latest
+    needs: lint-types
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - name: Dependencias
+        run: |
+          pip install -r requirements-api.txt
+          pip install pytest httpx pandera datasketch nltk onnx statsmodels matplotlib
+      - name: Pruebas (unitarias, datos, API, regresión del modelo)
+        env: {DL03_PROFILE: smoke, PYTHONPATH: "${{ github.workspace }}/src:${{ github.workspace }}"}
+        run: pytest -q tests/
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: tests
+    steps:
+      - uses: actions/checkout@v4
+      - name: Construir imagen
+        run: docker build -t dl03-api .
+      - name: Prueba de humo (contenedor real)
+        run: |
+          docker run -d --name api -p 8000:8000 dl03-api
+          for i in $(seq 1 40); do curl -sf localhost:8000/health && break; sleep 2; done
+          curl -sf localhost:8000/ready
+          if [ -f app/models/text_model.joblib ]; then
+            curl -sf -X POST localhost:8000/predict_text -H 'content-type: application/json' \
+              -d '{"text":"Senior software engineer with Python and cloud experience"}'
+          fi
+          docker logs api | tail -5
+      - name: Análisis de vulnerabilidades (pip-audit)
+        run: |
+          pip install pip-audit
+          pip-audit -r requirements-api.txt || echo "::warning::pip-audit reportó hallazgos (ver log)"

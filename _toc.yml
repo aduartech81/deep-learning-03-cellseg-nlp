@@ -1,0 +1,24 @@
+format: jb-book
+root: intro
+parts:
+  - caption: Métodos
+    chapters:
+      - file: notebooks/00_preregistro
+      - file: notebooks/01_fundamentos
+      - file: notebooks/02_ejercicios_manuales
+  - caption: Bloque 1 · Segmentación de instancias celulares
+    chapters:
+      - file: notebooks/03_seg_eda
+      - file: notebooks/04_seg_modelos
+      - file: notebooks/05_seg_ablaciones_robustez
+  - caption: Bloque 2 · Procesamiento del lenguaje natural
+    chapters:
+      - file: notebooks/06_nlp_eda
+      - file: notebooks/07_nlp_modelos
+      - file: notebooks/08_nlp_robustez_equidad
+  - caption: MLOps y discusión
+    chapters:
+      - file: notebooks/09_mlops_deriva
+      - file: notebooks/10_discusion
+      - file: conclusiones
+      - file: referencias
