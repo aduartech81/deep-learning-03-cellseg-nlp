@@ -43,6 +43,11 @@ def free_memory() -> None:
             torch.cuda.empty_cache()
     if len(_IMG_CACHE) > 300:
         _IMG_CACHE.clear()
+    try:
+        from .seg_models import sam_wrap
+        sam_wrap._EMB_CACHE.clear()
+    except Exception:
+        pass
     gc.collect()
 
 

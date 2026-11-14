@@ -68,7 +68,9 @@ def build_augment(level: str):
     if level == "none":
         return None
     import albumentations as A
-    t = [A.HorizontalFlip(p=0.5), A.VerticalFlip(p=0.5), A.RandomRotate90(p=0.5),
+    # sin RandomRotate90: intercambia alto y ancho y las imágenes no son cuadradas (520×704); los dos flips ya
+    # cubren la rotación de 180° y Affine las rotaciones pequeñas
+    t = [A.HorizontalFlip(p=0.5), A.VerticalFlip(p=0.5),
          A.Affine(scale=(0.85, 1.15), rotate=(-20, 20), p=0.5, border_mode=0)]
     if "photo" in level:
         t += [A.RandomBrightnessContrast(0.15, 0.15, p=0.5), A.GaussNoise(std_range=(0.01, 0.04), p=0.3),

@@ -69,6 +69,7 @@ def ablation(tag, seed, res=AB, loss="ce_dice", aug="geom_photo", norm="percenti
     sub = sd.Splits(splits.group_col, train_ids or splits.train, VA, eval_ids, [])
     pdir, _ = se.unetpp_full(cfg, images, sub, seed, f"ab_{tag}_s{seed}", res=res, loss=loss, aug=aug, norm=norm,
                              frac=frac, hp=best_hp, epochs=EP, test_ids=eval_ids)
+    se.free_memory()
     return se.evaluate(cfg, images, se.load_preds(pdir, eval_ids), tag, seed, with_prob=False)
 
 
@@ -141,8 +142,9 @@ summ.round(4)
 # cero vs ImageNet (una semilla; desviación declarada). Evaluado en test, junto con los modelos del capítulo 4.
 
 # %%
+se.free_memory()
 pre_rows = []
-for s in SEEDS[:3]:
+for s in cfg.seg["seeds_heavy"]:
     pd_, _ = se.cellpose_full(cfg, images, splits, s, f"cellpose_scratch_s{s}", init=None)
     pre_rows.append(se.evaluate(cfg, images, se.load_preds(pd_, splits.test), "Cellpose desde cero", s, with_prob=False))
     pre_rows.append(se.evaluate(cfg, images, se.load_preds(se.run_dir(cfg, "preds", f"cellpose_ft_s{s}"), splits.test),
@@ -182,6 +184,7 @@ for frac in cfg.seg["data_fractions"]:
                                    init=cfg.seg["cellpose"]["model"] if PRE else None, train_ids=tr_ids)
         fr_rows.append(se.evaluate(cfg, images, se.load_preds(pdir, splits.test), "Cellpose (preentrenado)", s,
                                    with_prob=False).assign(frac=frac))
+        se.free_memory()
 fr = pd.concat(fr_rows, ignore_index=True)
 fr.to_csv(cfg.out_dir / "seg" / "data_efficiency.csv", index=False)
 n_train = len(splits.train)

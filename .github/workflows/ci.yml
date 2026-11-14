@@ -30,7 +30,7 @@ jobs:
       - name: Dependencias
         run: |
           pip install -r requirements-api.txt
-          pip install pytest httpx pandera datasketch nltk onnx statsmodels matplotlib
+          pip install pytest httpx pandera datasketch nltk onnx statsmodels matplotlib pyarrow
       - name: Pruebas (unitarias, datos, API, regresión del modelo)
         env: {DL03_PROFILE: smoke, PYTHONPATH: "${{ github.workspace }}/src:${{ github.workspace }}"}
         run: pytest -q tests/

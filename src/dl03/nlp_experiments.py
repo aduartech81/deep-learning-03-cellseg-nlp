@@ -125,7 +125,7 @@ def nested_cv(cfg, name, X, y, groups, sp, K):
         otr = np.array(otr)
         inner = StratifiedGroupKFold(round(1 / 0.15), shuffle=True, random_state=cfg.seed + 10 + k)
         a, b = next(inner.split(otr, y[otr], groups[otr]))
-        res = hpo(cfg, name, X, y, otr[a], otr[b], K, cfg.nlp["hpo_trials"], seed=k,
+        res = hpo(cfg, name, X, y, otr[a], otr[b], K, cfg.nlp.get("nested_trials", cfg.nlp["hpo_trials"]), seed=k,
                   cap_epochs=cfg.nlp["bilstm_max_epochs_cap"], tag=f"nested{k}")
         p = full_params(name, res["best_params"], cfg.nlp["bilstm_max_epochs_cap"])
         m = fit_model(name, X[otr[a]], y[otr[a]], X[otr[b]], y[otr[b]], p, k, K)

@@ -23,9 +23,9 @@ profiles:
       seeds_light: [0, 1, 2, 3, 4]
       seeds_heavy: [0, 1, 2]
       hpo_trials: 12           # mismo número de trials para todos los modelos de segmentación con HPO
-      unetpp: {epochs: 60, batch: 4, patience: 10, filters: [32, 64, 128, 256, 512]}
-      hovernet: {epochs: 50, batch: 4, patience: 10}
-      maskrcnn: {epochs: 24, batch: 2, max_det: 600}
+      unetpp: {epochs: 40, batch: 4, patience: 8, filters: [32, 64, 128, 256, 512]}
+      hovernet: {epochs: 30, batch: 4, patience: 6}
+      maskrcnn: {epochs: 16, batch: 2, max_det: 600}
       cellpose: {epochs: 100, model: cyto2}
       sam: {model_type: vit_b, points_per_side: 32}
       data_fractions: [0.1, 0.25, 0.5, 1.0]
@@ -34,6 +34,7 @@ profiles:
       source: kaggle
       competition: jarvis-calling-hiring-contest
       hpo_trials: 20           # presupuesto idéntico para los modelos ligeros comparables
+      nested_trials: 10        # trials por fold externo en la validación anidada (idéntico entre modelos)
       nested_outer: 5
       nested_inner: 3
       seeds_light: [0, 1, 2, 3, 4]
@@ -47,7 +48,7 @@ profiles:
     seg:
       source: synthetic
       n_images: 48
-      img_size: 64
+      img_size: 128            # no cuadrada (96×128), como la real (384×512): prueba la geometría de verdad
       ablation_size: 64
       seeds_light: [0, 1]
       seeds_heavy: [0]
@@ -63,6 +64,7 @@ profiles:
       source: synthetic
       n_docs: 480
       hpo_trials: 2
+      nested_trials: 2
       nested_outer: 2
       nested_inner: 2
       seeds_light: [0, 1]

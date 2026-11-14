@@ -53,7 +53,7 @@ env = environment_report()
 # | Pruebas estadísticas | α = 0.05, corrección de Holm. Segmentación: Wilcoxon pareado por imagen, Friedman + post hoc, diagrama de diferencia crítica, d de Cohen pareada y δ de Cliff, modelo mixto con intercepto aleatorio por grupo de placa. NLP: McNemar exacto, t corregida de Nadeau–Bengio, Friedman + Holm sobre folds, IC bootstrap. |
 # | Efecto mínimo relevante | δ_seg = 0.02 de AP (≈ 6 % relativo a un AP típico de 0.30 en esta tarea; diferencias menores no cambian el conteo celular de forma apreciable). δ_NLP = 0.02 de F1 macro (≈ 1 documento de cada 50 bien clasificado). |
 # | Semillas | ≥ 5 en modelos ligeros (NLP ligeros, transformer); 3 en modelos pesados de segmentación. |
-# | Presupuesto de HPO | Optuna TPE + MedianPruner, mismo número de trials por familia comparable: 20 en NLP ligero; 12 en segmentación (para los modelos preentrenados, el HPO se aplica a parámetros de inferencia/post-proceso; ver 0.6). |
+# | Presupuesto de HPO | Optuna TPE + MedianPruner, mismo número de trials por familia comparable: 20 en NLP ligero (10 por fold externo en la validación anidada); 12 en segmentación (para los modelos preentrenados, el HPO se aplica a parámetros de inferencia/post-proceso; ver 0.6). Épocas máximas con early stopping: U-Net++ 40, estilo Hover-Net 30, Mask R-CNN 16, Cellpose 100. Presupuesto total estimado: ≈ 12–14 GPU-h (L4). |
 # | Parada | Early stopping sobre pérdida de validación con paciencia declarada en `configs/project.yaml`. |
 # | Reproducibilidad | `configs/project.yaml`, semillas fijas, versiones registradas, MANIFEST con SHA-256 de los datos, MLflow local (si está disponible) y un comando único (`make reproduce`). |
 
@@ -109,7 +109,10 @@ assert r.returncode == 0, "las utilidades no pasan sus pruebas"
 # 8. **Ablación de preentrenamiento** con Cellpose (desde cero vs `cyto2`, preentrenado en microscopía) y con el
 #    codificador del modelo estilo Hover-Net (desde cero vs ImageNet), porque U-Net++ es desde cero por diseño.
 # 9. **Texto fuera de distribución**: no existe otra fuente o periodo en el dataset; se reporta como limitación.
-# 10. **Anotación manual de errores y de ruido de etiquetas**: un único anotador (el autor), por lo que no se
+# 10. **Presupuesto de cómputo**: épocas máximas reducidas respecto de las recomendaciones de los autores
+    (Mask R-CNN 16 en lugar de 24–36; Hover-Net 30; U-Net++ 40, todas con early stopping) para caber en ≈ 13
+    GPU-h de Colab.
+11. **Anotación manual de errores y de ruido de etiquetas**: un único anotador (el autor), por lo que no se
 #     puede calcular κ de Cohen entre anotadores.
 
 # %%

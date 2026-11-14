@@ -87,6 +87,7 @@ S0 = cfg.seg["seeds_heavy"][0]
 umodel = se.load_keras(se.run_dir(cfg, "models") / f"unetpp_s{S0}.keras")
 pp = json.loads((cfg.out_dir / "seg" / "params" / f"unetpp_s{S0}.json").read_text())["params"]
 onnx_path = APPM / "unetpp.onnx"
+umodel.predict(np.zeros((1, 64, 64, 1), np.float32), verbose=0)   # Keras exige una llamada antes de exportar
 umodel.export(str(onnx_path), format="onnx", verbose=False)
 import onnxruntime as ort  # noqa: E402
 
@@ -228,8 +229,10 @@ golden
 import httpx  # noqa: E402
 
 port = 8765
+api_log = open(cfg.out_dir / "api_carga.log", "w")       # registro estructurado de la API (no ensucia el notebook)
 srv = subprocess.Popen([sys.executable, "-m", "uvicorn", "app.main:app", "--port", str(port), "--log-level",
-                        "warning"], cwd=ROOT, env={**__import__("os").environ, "PYTHONPATH": f"{ROOT}/src:{ROOT}"})
+                        "warning"], cwd=ROOT, env={**__import__("os").environ, "PYTHONPATH": f"{ROOT}/src:{ROOT}"},
+                       stdout=api_log, stderr=subprocess.STDOUT)
 base = f"http://127.0.0.1:{port}"
 for _ in range(60):
     try:
@@ -277,6 +280,8 @@ for conc in [1, 2, 4, 8, 16]:
                                                          4 * conc + 4)})
 lt = pd.DataFrame(lt)
 srv.terminate()
+api_log.close()
+print("líneas de registro JSON de la API:", sum(1 for _ in open(cfg.out_dir / "api_carga.log")))
 save_table(cfg, "mlops_carga", lt)
 fig, ax = plt.subplots(1, 2, figsize=(11, 3.6))
 for k, (e, g) in enumerate(lt.groupby("endpoint")):
