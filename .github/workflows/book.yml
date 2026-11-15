@@ -1,4 +1,5 @@
 # Construye el Jupyter Book con las salidas ya guardadas en los notebooks y lo publica en GitHub Pages.
+# Se omite (sin error) mientras los notebooks ejecutados con los datos reales no estén en el repositorio.
 name: Publicar Jupyter Book
 on:
   push:
@@ -15,17 +16,27 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    if: ${{ hashFiles('notebooks/10_discusion.ipynb') != '' }}
+    outputs:
+      ok: ${{ steps.check.outputs.ok }}
     steps:
       - uses: actions/checkout@v4
+      - id: check
+        run: |
+          if [ -f notebooks/10_discusion.ipynb ]; then echo "ok=true" >> "$GITHUB_OUTPUT";
+          else echo "ok=false" >> "$GITHUB_OUTPUT"; echo "::notice::Aún no hay notebooks ejecutados; no se publica."; fi
       - uses: actions/setup-python@v5
+        if: steps.check.outputs.ok == 'true'
         with: {python-version: "3.12"}
-      - run: pip install "jupyter-book==1.0.4.post1"
-      - run: jupyter-book build .
-      - uses: actions/upload-pages-artifact@v3
+      - if: steps.check.outputs.ok == 'true'
+        run: pip install "jupyter-book==1.0.4.post1"
+      - if: steps.check.outputs.ok == 'true'
+        run: jupyter-book build .
+      - if: steps.check.outputs.ok == 'true'
+        uses: actions/upload-pages-artifact@v3
         with: {path: _build/html}
   deploy:
     needs: build
+    if: needs.build.outputs.ok == 'true'
     runs-on: ubuntu-latest
     environment: {name: github-pages, url: "${{ steps.deployment.outputs.page_url }}"}
     steps:
